@@ -1,30 +1,7 @@
 {
-  "name": "revision-tracker-ultra-web",
-  "version": "1.0.0",
-  "private": true,
+  "homepage": "https://jack18621.github.io/RevisionTracker/",
   "scripts": {
-    "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
     "deploy": "gh-pages -d dist"
-  },
-  "dependencies": {
-    "clsx": "^2.1.0",
-    "dayjs": "^1.11.10",
-    "framer-motion": "^11.0.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.23.1",
-    "recharts": "^2.10.3",
-    "zustand": "^4.5.2"
-  },
-  "devDependencies": {
-    "@types/node": "^20.10.0",
-    "@vitejs/plugin-react": "^4.2.0",
-    "autoprefixer": "^10.4.20",
-    "gh-pages": "^6.1.1",
-    "postcss": "^8.4.41",
-    "tailwindcss": "^3.4.10",
-    "vite": "^5.2.0"
   }
 }
