@@ -1,7 +1,0 @@
-{
-  "homepage": "https://jack18621.github.io/RevisionTracker/",
-  "scripts": {
-    "build": "vite build",
-    "deploy": "gh-pages -d dist"
-  }
-}
