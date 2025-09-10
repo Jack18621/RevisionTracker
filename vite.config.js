@@ -3,5 +3,5 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '', // works with GitHub Pages root; using hash router anyway
+  base: '/RevisionTracker/',   // <<< important for GH Pages
 })
