@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Revision Tracker</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Revision Tracker</div>
+    <nav class="nav">
+      <button data-tab="home" class="nav-btn active">Home</button>
+      <button data-tab="history" class="nav-btn">History</button>
+      <button data-tab="settings" class="nav-btn">Settings</button>
+    </nav>
+  </header>
+
+  <main class="container">
+    <!-- HOME -->
+    <section id="home" class="page show">
+      <div class="grid-2">
+        <!-- Focus hero -->
+        <div class="card center lift">
+          <div class="ring-wrap pulse" id="ringWrap">
+            <svg viewBox="0 0 120 120" class="ring">
+              <circle cx="60" cy="60" r="50" class="ring-bg" />
+              <circle cx="60" cy="60" r="50" class="ring-fg" stroke-dasharray="314" stroke-dashoffset="314" />
+              <circle cx="60" cy="10" r="4" class="ring-dot" />
+            </svg>
+            <div class="timer-text">
+              <div id="focusTime" class="time">00:00:00</div>
+              <div id="focusSub" class="sub">No goal set</div>
+            </div>
+          </div>
+          <div class="row wrap hero-controls">
+            <label>Goal (min)</label>
+            <input type="number" id="sessionGoal" min="0" max="600" value="45" />
+            <label>Subject</label>
+            <select id="subjectSelectFocus"></select>
+            <div class="grow"></div>
+            <button id="focusStart" class="btn">Start</button>
+            <button id="focusPause" class="btn ghost hide">Pause</button>
+            <button id="focusStop" class="btn danger hide">Stop</button>
+          </div>
+        </div>
+
+        <!-- Streak + quote -->
+        <div class="card lift">
+          <div class="row">
+            <h3 style="margin:0">Streak</h3>
+            <div class="grow"></div>
+            <div id="streakLabel" class="streak">Streak: 0 🔥</div>
+          </div>
+          <div id="streakGrid" class="streak-grid"></div>
+          <div class="quote" id="quoteBox">“Small steps daily beat rare sprints.”</div>
+        </div>
+      </div>
+
+      <!-- Chart -->
+      <div class="card lift">
+        <div class="row">
+          <h3 style="margin:0">Progress</h3>
+          <div class="grow"></div>
+          <div class="legend-hint">Cumulative hours. <span class="pill orange">Exam</span> <span class="pill purple">Homework due</span></div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="chart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- HISTORY -->
+    <section id="history" class="page">
+      <div class="card">
+        <div id="historySummary" class="muted">Loading…</div>
+        <ul id="historyList" class="list"></ul>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="settings" class="page">
+      <div class="card">
+        <h3>Targets & Behaviour</h3>
+        <div class="row wrap">
+          <label>Daily target (min)</label>
+          <input type="number" id="dailyTarget" min="5" max="600" />
+          <label class="checkbox"><input type="checkbox" id="includeWeekends" /><span>Include weekends in target/streak</span></label>
+        </div>
+        <h3>Date Range</h3>
+        <div class="row wrap">
+          <label>Start</label><input type="date" id="rangeStart" />
+          <label>End</label><input type="date" id="rangeEnd" />
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Exam Dates</h3>
+        <ul id="examList" class="list"></ul>
+        <div class="row wrap">
+          <select id="examSubject"></select>
+          <input type="text" id="examLabel" placeholder="Label (e.g., Maths Paper 1)" />
+          <input type="date" id="examDate" />
+          <button id="addExam" class="btn">Add</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Homework (ClassCharts)</h3>
+        <div class="muted">Use a proxy URL (Cloudflare Worker / Netlify Function) to fetch homework securely and avoid CORS.</div>
+        <div class="row wrap">
+          <label>Proxy URL</label><input type="url" id="proxyUrl" placeholder="https://your-worker.example.workers.dev" />
+          <label>Student Code</label><input id="studentCode" placeholder="AB12CD" />
+          <label>DOB (YYYY-MM-DD)</label><input id="studentDob" placeholder="2009-05-14" />
+          <button id="syncHw" class="btn">Sync homework</button>
+        </div>
+        <h4>Or import JSON</h4>
+        <textarea id="hwJson" rows="6" placeholder='[{"title":"Revise Biology","due_date":"2026-05-10"}]'></textarea>
+        <div class="row">
+          <label>Keywords</label><input id="keywords" placeholder="revise, revision, study, prepare, practice" />
+          <button id="importHw" class="btn ghost">Import JSON</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">All data is stored locally in your browser.</footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
