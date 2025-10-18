@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Lavender-purple theme for Geography study app */
+    --background: 270 60% 97%;
+    --foreground: 260 30% 20%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 260 30% 20%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 260 30% 20%;
+
+    --primary: 270 70% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 270 50% 90%;
+    --secondary-foreground: 260 30% 25%;
+
+    --muted: 270 40% 94%;
+    --muted-foreground: 260 20% 50%;
+
+    --accent: 280 80% 65%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 270 30% 88%;
+    --input: 270 30% 92%;
+    --ring: 270 70% 60%;
+
+    --radius: 1rem;
+
+    /* Custom gradients */
+    --gradient-background: linear-gradient(135deg, hsl(260, 60%, 92%) 0%, hsl(280, 70%, 88%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0, 0%, 100%) 0%, hsl(270, 30%, 98%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(270, 70%, 60%) 0%, hsl(280, 80%, 65%) 100%);
+    
+    /* Shadows */
+    --shadow-soft: 0 4px 20px rgba(139, 92, 246, 0.12);
+    --shadow-medium: 0 8px 30px rgba(139, 92, 246, 0.18);
+    --shadow-strong: 0 12px 40px rgba(139, 92, 246, 0.25);
+    
+    /* Transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
