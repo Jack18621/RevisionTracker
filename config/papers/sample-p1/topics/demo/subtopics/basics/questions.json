@@ -1,0 +1,83 @@
+{
+  "modes": {
+    "MCQ": [
+      {
+        "prompt": "What is 2 + 2?",
+        "options": [
+          "3",
+          "4",
+          "5",
+          "22"
+        ],
+        "correctIndex": 1,
+        "explanation": "2 + 2 = 4"
+      }
+    ],
+    "TF": [
+      {
+        "prompt": "The Earth is round.",
+        "answer": true,
+        "explanation": "Oblate spheroid"
+      }
+    ],
+    "SHORT": [
+      {
+        "prompt": "SI unit of time",
+        "acceptable": [
+          "second",
+          "s"
+        ],
+        "explanation": "Base SI unit"
+      }
+    ],
+    "FILL": [
+      {
+        "text": "Energy is measured in {{units}}.",
+        "answers": [
+          [
+            "joules",
+            "j"
+          ]
+        ],
+        "explanation": "Joules"
+      }
+    ],
+    "MATCH": [
+      {
+        "pairs": [
+          [
+            "Solid",
+            "Particles fixed"
+          ],
+          [
+            "Liquid",
+            "Particles close, can flow"
+          ],
+          [
+            "Gas",
+            "Particles far apart"
+          ]
+        ],
+        "explanation": "States of matter"
+      }
+    ],
+    "DEFINE": [
+      {
+        "term": "Diffusion",
+        "acceptable": [
+          "spreading out of particles from high to low concentration"
+        ],
+        "explanation": "Random motion"
+      }
+    ],
+    "EXAM": [
+      {
+        "number": 1,
+        "text": "Describe the water cycle.",
+        "marks": 4,
+        "image": "",
+        "explanation": "Evaporation, condensation, precipitation, collection."
+      }
+    ]
+  }
+}
