@@ -1,0 +1,26 @@
+{
+  "modes": {
+    "MCQ": [],
+    "TF": [],
+    "SHORT": [
+      {
+        "prompt": "Keyword for Newton's 1st Law.",
+        "acceptable": [
+          "inertia"
+        ]
+      }
+    ],
+    "FILL": [
+      {
+        "text": "F = m \u00d7 {{a}}.",
+        "answers": [
+          [
+            "a",
+            "acceleration"
+          ]
+        ]
+      }
+    ],
+    "MATCH": []
+  }
+}

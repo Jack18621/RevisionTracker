@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Revise — Study</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/app.css" />
+</head>
+<body>
+  <div class="canvas-gradient"></div>
+  <div id="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="dot"></span>
+        <span class="logo-text">study</span>
+      </div>
+      <button id="settingsBtn" class="btn subtle">Settings</button>
+    </header>
+
+    <main class="container">
+      <section class="hero card">
+        <div class="hero-inner">
+          <div class="cap">🎓</div>
+          <h1>Hello, <span id="username">Jack</span></h1>
+          <div class="chips">
+            <div class="chip">
+              <span class="chip-emoji">🔥</span>
+              <div>
+                <div class="chip-title">Daily Streak</div>
+                <div class="chip-sub" id="streakLabel">Keep it up! 0 day(s)</div>
+              </div>
+            </div>
+            <div class="chip disabled">
+              <span class="chip-emoji">🔒</span>
+              <div>
+                <div class="chip-title">Leaderboard</div>
+                <div class="chip-sub">Coming soon</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="filters card">
+        <div class="filters-grid">
+          <div class="field">
+            <label for="paperSel">Paper</label>
+            <select id="paperSel"></select>
+          </div>
+          <div class="field">
+            <label for="topicSel">Topic</label>
+            <select id="topicSel"></select>
+          </div>
+          <div class="field">
+            <label for="subtopicSel">Subtopic</label>
+            <select id="subtopicSel"></select>
+          </div>
+          <div class="field">
+            <label for="modeSel">Mode</label>
+            <select id="modeSel">
+              <option value="MCQ">Multiple Choice</option>
+              <option value="TF">True / False</option>
+              <option value="SHORT">Short Answer</option>
+              <option value="FILL">Fill‑in‑the‑Blank</option>
+              <option value="MATCH">Match‑Up</option>
+            </select>
+          </div>
+          <div class="actions">
+            <button id="startBtn" class="btn primary">Start</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="playCard" class="play card hidden">
+        <div id="questionMeta" class="q-meta"></div>
+        <div id="questionBody"></div>
+        <div id="controls" class="controls"></div>
+        <div id="explain" class="explain hidden"></div>
+        <div class="play-actions">
+          <button id="prevBtn" class="btn subtle">← Prev</button>
+          <button id="nextBtn" class="btn">Next →</button>
+        </div>
+      </section>
+
+      <section class="how card">
+        <h2>Folder layout</h2>
+<pre class="code">
+config/
+  manifest.json
+  papers/
+    bio-p1/
+      topics/
+        cells/
+          subtopics/
+            cells-basics/
+              questions.json
+    chem-p1/
+      topics/...
+    phys-p1/
+      topics/...
+</pre>
+        <p>
+          Add more papers/topics/subtopics in <code>config/manifest.json</code> and place questions in each
+          <code>questions.json</code>. No questions live in the code — it all loads from files.
+        </p>
+      </section>
+    </main>
+  </div>
+
+  <script src="./assets/app.js"></script>
+</body>
+</html>
