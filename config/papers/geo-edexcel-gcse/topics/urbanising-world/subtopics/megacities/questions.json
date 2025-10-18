@@ -1,0 +1,81 @@
+{
+  "modes": {
+    "MCQ": [
+      {
+        "prompt": "Sample MCQ for Megacities?",
+        "options": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ],
+        "correctIndex": 1,
+        "explanation": "Replace with your own explanation."
+      }
+    ],
+    "TF": [
+      {
+        "prompt": "Example statement about Megacities.",
+        "answer": true,
+        "explanation": "Replace with your own explanation."
+      }
+    ],
+    "SHORT": [
+      {
+        "prompt": "Key term from Megacities",
+        "acceptable": [
+          "your ideal wording",
+          "alt phrasing"
+        ],
+        "explanation": "Replace with your own tip/explanation."
+      }
+    ],
+    "FILL": [
+      {
+        "text": "Megacities is influenced by {process}.",
+        "answers": [
+          [
+            "erosion",
+            "weathering",
+            "migration",
+            "trade"
+          ]
+        ],
+        "explanation": "Replace with context."
+      }
+    ],
+    "MATCH": [
+      {
+        "pairs": [
+          [
+            "Term 1",
+            "Definition 1"
+          ],
+          [
+            "Term 2",
+            "Definition 2"
+          ]
+        ],
+        "explanation": "Replace with your own pairs."
+      }
+    ],
+    "DEFINE": [
+      {
+        "term": "Example concept in Megacities",
+        "acceptable": [
+          "clean concise definition goes here"
+        ],
+        "explanation": "Marker notes for define mode."
+      }
+    ],
+    "EXAM": [
+      {
+        "number": 1,
+        "text": "Explain one factor affecting Megacities.",
+        "marks": 4,
+        "image": "",
+        "explanation": "Credit points + development, replace as needed."
+      }
+    ]
+  }
+}
