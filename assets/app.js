@@ -1,12 +1,12 @@
 (function () {
   // ---------- helpers ----------
   function $(s) { return document.querySelector(s); }
-  function $all(s) { return Array.prototype.slice.call(document.querySelectorAll(s)); }
+  function $all(s, root) { return Array.prototype.slice.call((root || document).querySelectorAll(s)); }
   var state = {
     manifest: null,
     paper: null, topic: null, subtopic: null,
-    mode: "QUIZ",        // QUIZ | DEFINE | EXAM
-    questions: [], i: 0,
+    mode: "QUIZ",         // QUIZ | DEFINE | EXAM
+    questions: [], i: 0
   };
 
   function shuffle(arr) {
@@ -28,6 +28,17 @@
     ["paperSel", "topicSel", "subtopicSel"].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) el.innerHTML = '<option disabled selected>' + msg + '</option>';
+    });
+  }
+
+  // Safe JSON fetch (resolves URL + validates JSON)
+  function jsonFetch(relativePath) {
+    var url = new URL(relativePath, document.baseURI).href;
+    return fetch(url).then(function (res) {
+      if (!res.ok) throw new Error("HTTP " + res.status + " for " + url);
+      var ct = (res.headers.get("content-type") || "").toLowerCase();
+      if (ct.indexOf("json") === -1) throw new Error("Not JSON at " + url);
+      return res.json();
     });
   }
 
@@ -62,7 +73,7 @@
         ' <button id="closeSettings" class="btn">Close</button>' +
         '</div>';
       $(".container").insertBefore(node, $(".how"));
-      node.querySelector("#closeSettings").addEventListener("click", function(){ ensureSettings(false); showHome(); });
+      node.querySelector("#closeSettings").addEventListener("click", function () { ensureSettings(false); showHome(); });
     }
     node.classList.toggle("hidden", !show);
     $(".hero").classList.toggle("hidden", show);
@@ -73,9 +84,7 @@
   // ---------- load manifest + populate dropdowns ----------
   async function loadManifest() {
     try {
-      var res = await fetch("./config/manifest.json");
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      state.manifest = await res.json();
+      state.manifest = await jsonFetch("./config/manifest.json");
       populatePapers();
     } catch (err) {
       console.error("Failed to load manifest.json:", err);
@@ -84,78 +93,73 @@
       toast(isFile ? "Run a local server (file:// blocks fetch)" : "Could not load manifest.json");
     }
 
-    // Replace Mode options with the 3 new modes
     var modeSel = $("#modeSel");
     if (modeSel) {
-      modeSel.innerHTML = ''
-        + '<option value="QUIZ">Quiz</option>'
-        + '<option value="DEFINE">Define</option>'
-        + '<option value="EXAM">Exam</option>';
+      modeSel.innerHTML =
+        '<option value="QUIZ">Quiz</option>' +
+        '<option value="DEFINE">Define</option>' +
+        '<option value="EXAM">Exam</option>';
     }
   }
 
-  // Group papers by subject (e.g. "Biology — Higher Paper 1" -> subject "Biology", label "Paper 1")
-function groupPapersBySubject(papers){
-  var groups = {}; // { subject: [{id, label, full}] }
-  papers.forEach(function(p){
-    var name = p.name || "";
-    var parts = name.split("—");                // e.g. ["Biology ", " Higher Paper 1"]
-    var subject = (parts[0] || "").trim() || "Other";
+  // Group papers by subject. If name lacks "Paper N", derive N from id suffix "-pN".
+  function groupPapersBySubject(papers) {
+    var groups = {};
+    papers.forEach(function (p) {
+      var name = (p.name || "").trim();
+      var id = (p.id || "").trim();
 
-    // Everything after the first "—"
-    var rest = parts.slice(1).join("—").trim(); // e.g. "Higher Paper 1"
+      var subject = "Other";
+      if (name.indexOf("—") !== -1) subject = name.split("—")[0].trim();
+      else if (name) subject = name.split(/\s+/)[0];
+      else if (id.indexOf("-") !== -1) subject = id.split("-")[0].toUpperCase();
 
-    // Try to extract "Paper X" as the visible label
-    var m = rest.match(/paper\s*\d+/i);
-    var label = m ? m[0].replace(/\s+/g," ") : (rest || name); // "Paper 1" or fallback
-    label = label.charAt(0).toUpperCase() + label.slice(1);    // capitalize P
+      var rest = name.split("—").slice(1).join("—").trim();
+      var mName = rest.match(/paper\s*(\d+)/i);
+      var mId = id.match(/-p(\d+)$/i);
+      var n = mName ? mName[1] : (mId ? mId[1] : null);
+      var label = n ? ("Paper " + n) : (rest || name || id);
 
-    if(!groups[subject]) groups[subject] = [];
-    groups[subject].push({ id: p.id, label: label, full: name });
-  });
-
-  // keep each subject's papers ordered by paper number if present
-  Object.keys(groups).forEach(function(subj){
-    groups[subj].sort(function(a,b){
-      var na = (a.label.match(/\d+/)||[0])[0]*1;
-      var nb = (b.label.match(/\d+/)||[0])[0]*1;
-      return na - nb;
+      if (!groups[subject]) groups[subject] = [];
+      groups[subject].push({ id: p.id, label: label, full: name });
     });
-  });
 
-  return groups;
-}
-
-function populatePapers(){
-  if (!state.manifest || !Array.isArray(state.manifest.papers) || !state.manifest.papers.length){
-    failDropdowns("No papers in manifest");
-    return;
+    Object.keys(groups).forEach(function (s) {
+      groups[s].sort(function (a, b) {
+        var na = (a.label.match(/\d+/) || [999])[0] * 1;
+        var nb = (b.label.match(/\d+/) || [999])[0] * 1;
+        if (na !== nb) return na - nb;
+        return (a.full || "").localeCompare(b.full || "");
+      });
+    });
+    return groups;
   }
 
-  var sel = $("#paperSel");
-  var groups = groupPapersBySubject(state.manifest.papers);
+  function populatePapers() {
+    if (!state.manifest || !Array.isArray(state.manifest.papers) || !state.manifest.papers.length) {
+      failDropdowns("No papers in manifest");
+      return;
+    }
+    var sel = $("#paperSel");
+    var groups = groupPapersBySubject(state.manifest.papers);
 
-  // Build <optgroup>…<option>… HTML
-  var html = Object.keys(groups).sort().map(function(subject){
-    var options = groups[subject].map(function(it){
-      return '<option value="'+it.id+'">'+it.label+'</option>';
+    var html = Object.keys(groups).sort().map(function (subject) {
+      var options = groups[subject].map(function (it) {
+        return '<option value="' + it.id + '">' + it.label + '</option>';
+      }).join("");
+      return '<optgroup label="' + subject + '">' + options + '</optgroup>';
     }).join("");
-    return '<optgroup label="'+subject+'">'+options+'</optgroup>';
-  }).join("");
 
-  sel.innerHTML = html;
+    sel.innerHTML = html;
+    var first = sel.querySelector("option");
+    state.paper = first ? first.value : null;
 
-  // Select first available option
-  var first = sel.querySelector("option");
-  state.paper = first ? first.value : null;
-
-  sel.onchange = function(){
-    state.paper = sel.value;
+    sel.onchange = function () {
+      state.paper = sel.value;
+      populateTopics();
+    };
     populateTopics();
-  };
-
-  populateTopics();
-}
+  }
 
   function populateTopics() {
     var paper = (state.manifest.papers || []).find(function (p) { return p.id === state.paper; }) || {};
@@ -171,6 +175,7 @@ function populatePapers(){
     state.topic = (topics[0] || {}).id || null;
     populateSubtopics();
   }
+
   function populateSubtopics() {
     var paper = (state.manifest.papers || []).find(function (p) { return p.id === state.paper; }) || {};
     var topic = (paper.topics || []).find(function (t) { return t.id === state.topic; }) || {};
@@ -187,26 +192,21 @@ function populatePapers(){
     var modes = json.modes || {};
     var out = [];
 
-    // MCQ
     (modes.MCQ || []).forEach(function (q) {
       var opts = q.options.map(function (o, i) { return { text: o, i: i }; });
       var sh = shuffle(opts);
       var ci = sh.findIndex(function (o) { return o.i === q.correctIndex; });
       out.push({ type: "MCQ", prompt: q.prompt, options: sh.map(function (o) { return o.text; }), correctIndex: ci, explanation: q.explanation || "" });
     });
-    // TF
     (modes.TF || []).forEach(function (q) {
       out.push({ type: "TF", prompt: q.prompt, answer: !!q.answer, explanation: q.explanation || "" });
     });
-    // SHORT
     (modes.SHORT || []).forEach(function (q) {
       out.push({ type: "SHORT", prompt: q.prompt, acceptable: q.acceptable || [], explanation: q.explanation || "" });
     });
-    // FILL
     (modes.FILL || []).forEach(function (q) {
       out.push({ type: "FILL", text: q.text, answers: q.answers || [], explanation: q.explanation || "" });
     });
-    // MATCH
     (modes.MATCH || []).forEach(function (q) {
       var left = shuffle((q.pairs || []).map(function (p) { return p[0]; }));
       var right = shuffle((q.pairs || []).map(function (p) { return p[1]; }));
@@ -225,7 +225,6 @@ function populatePapers(){
         list.push({ term: q.term, acceptable: q.acceptable || [], explanation: q.explanation || "" });
       });
     } else {
-      // Fallback: use SHORT prompts as "term"
       (modes.SHORT || []).forEach(function (q) {
         list.push({ term: q.prompt, acceptable: q.acceptable || [], explanation: q.explanation || "" });
       });
@@ -236,35 +235,37 @@ function populatePapers(){
   function buildExamQuestions(json) {
     var modes = json.modes || {};
     var ex = Array.isArray(modes.EXAM) ? modes.EXAM : [];
-    // expected item: { text, marks: 1|2|3|4|6|9, image? }
     return ex.map(function (q) {
       return { text: q.text, marks: q.marks || 1, image: q.image || null, number: q.number || null, explanation: q.explanation || "" };
     });
   }
 
-  function startSession() {
-    state.mode = $("#modeSel").value; // QUIZ | DEFINE | EXAM
-    var paper = state.manifest.papers.find(function (p) { return p.id === state.paper; });
-    var topic = paper.topics.find(function (t) { return t.id === state.topic; });
-    var sub = topic.subtopics.find(function (s) { return s.id === state.subtopic; });
+  async function startSession() {
+    try {
+      state.mode = $("#modeSel").value;
+      var paper = state.manifest.papers.find(function (p) { return p.id === state.paper; });
+      var topic = (paper && paper.topics || []).find(function (t) { return t.id === state.topic; });
+      var sub = (topic && topic.subtopics || []).find(function (s) { return s.id === state.subtopic; });
 
-    fetch(sub.path).then(function (r) { return r.json(); }).then(function (json) {
-      if (state.mode === "QUIZ") {
-        state.questions = buildQuizQuestions(json);
-      } else if (state.mode === "DEFINE") {
-        state.questions = buildDefineQuestions(json);
-      } else { // EXAM
-        state.questions = buildExamQuestions(json);
-      }
+      if (!sub || !sub.path) { toast("This subtopic has no questions.json path"); return; }
+
+      var data = await jsonFetch(sub.path);
+
+      if (state.mode === "QUIZ") state.questions = buildQuizQuestions(data);
+      else if (state.mode === "DEFINE") state.questions = buildDefineQuestions(data);
+      else state.questions = buildExamQuestions(data);
+
       state.i = 0;
       if (!state.questions.length) { toast("No questions for this mode"); return; }
       showPlay();
       render();
       toast("Session started");
-    }).catch(function (e) {
+    } catch (e) {
       console.error("Failed to load questions.json:", e);
-      toast("Could not load questions for this subtopic");
-    });
+      toast("Could not load questions.json");
+      var ex = $("#explain");
+      if (ex) { ex.textContent = (e && e.message) ? e.message : String(e); ex.classList.remove("hidden"); }
+    }
   }
 
   function setProgress() {
@@ -293,13 +294,9 @@ function populatePapers(){
     body.innerHTML = ""; ctrls.innerHTML = ""; ex.classList.add("hidden"); ex.textContent = "";
     setProgress(); setupSwipe(body);
 
-    if (state.mode === "QUIZ") {
-      renderQuizQuestion(body, ctrls, ex);
-    } else if (state.mode === "DEFINE") {
-      renderDefine(body, ctrls, ex);
-    } else {
-      renderExam(body, ctrls, ex);
-    }
+    if (state.mode === "QUIZ") renderQuizQuestion(body, ctrls, ex);
+    else if (state.mode === "DEFINE") renderDefine(body, ctrls, ex);
+    else renderExam(body, ctrls, ex);
 
     $("#prevBtn").disabled = (state.i === 0);
     $("#nextBtn").disabled = (state.i >= state.questions.length - 1);
@@ -423,7 +420,7 @@ function populatePapers(){
   }
 
   function renderDefine(body, ctrls, ex) {
-    var q = state.questions[state.i]; // {term, acceptable[]}
+    var q = state.questions[state.i];
     var h = document.createElement("h3"); h.textContent = "Define: " + q.term; body.appendChild(h);
     var input = document.createElement("textarea");
     input.rows = 4; input.placeholder = "Type a concise definition…";
@@ -449,13 +446,14 @@ function populatePapers(){
   }
 
   function renderExam(body, ctrls, ex) {
-    var q = state.questions[state.i]; // {text, marks, image?}
+    var q = state.questions[state.i];
     var head = document.createElement("div");
     head.className = "q-meta";
     head.textContent = (q.number ? ("Q" + q.number + " • ") : "") + (q.marks + " mark" + (q.marks > 1 ? "s" : ""));
     body.appendChild(head);
 
-    var h = document.createElement("div"); h.innerHTML = "<h3 style='margin:.2rem 0 0'>" + (q.text || "Question") + "</h3>";
+    var h = document.createElement("div");
+    h.innerHTML = "<h3 style='margin:.2rem 0 0'>" + (q.text || "Question") + "</h3>";
     body.appendChild(h);
 
     if (q.image) {
@@ -489,10 +487,10 @@ function populatePapers(){
     ctrls.appendChild(total);
 
     ctrls.addEventListener("change", function () {
-      var aw = 0; $all('input[type="checkbox"][data-mark]').forEach(function (c) { if (c.checked) aw += 1; });
+      var aw = 0; $all('input[type="checkbox"][data-mark]', ctrls).forEach(function (c) { if (c.checked) aw += 1; });
       if (aw > q.marks) aw = q.marks;
       total.textContent = "Awarded: " + aw + " / " + q.marks;
-    }, { once: true });
+    });
 
     if (q.explanation) { ex.textContent = q.explanation; ex.classList.remove("hidden"); }
   }
@@ -502,7 +500,7 @@ function populatePapers(){
   document.querySelector(".brand").addEventListener("click", function () { showHome(); });
   $("#settingsBtn").addEventListener("click", function () { ensureSettings(true); });
 
-  // keep play section off on load
+  // init
   showHome();
   loadManifest();
 }());
