@@ -93,18 +93,70 @@
         + '<option value="EXAM">Exam</option>';
     }
   }
-  function populatePapers() {
-    if (!state.manifest || !Array.isArray(state.manifest.papers) || !state.manifest.papers.length) {
-      failDropdowns("No papers in manifest"); return;
-    }
-    var sel = $("#paperSel");
-    sel.innerHTML = state.manifest.papers.map(function (p) {
-      return '<option value="' + p.id + '">' + p.name + '</option>';
-    }).join("");
-    sel.onchange = function () { state.paper = sel.value; populateTopics(); };
-    state.paper = (state.manifest.papers[0] || {}).id || null;
-    populateTopics();
+
+  // Group papers by subject (e.g. "Biology — Higher Paper 1" -> subject "Biology", label "Paper 1")
+function groupPapersBySubject(papers){
+  var groups = {}; // { subject: [{id, label, full}] }
+  papers.forEach(function(p){
+    var name = p.name || "";
+    var parts = name.split("—");                // e.g. ["Biology ", " Higher Paper 1"]
+    var subject = (parts[0] || "").trim() || "Other";
+
+    // Everything after the first "—"
+    var rest = parts.slice(1).join("—").trim(); // e.g. "Higher Paper 1"
+
+    // Try to extract "Paper X" as the visible label
+    var m = rest.match(/paper\s*\d+/i);
+    var label = m ? m[0].replace(/\s+/g," ") : (rest || name); // "Paper 1" or fallback
+    label = label.charAt(0).toUpperCase() + label.slice(1);    // capitalize P
+
+    if(!groups[subject]) groups[subject] = [];
+    groups[subject].push({ id: p.id, label: label, full: name });
+  });
+
+  // keep each subject's papers ordered by paper number if present
+  Object.keys(groups).forEach(function(subj){
+    groups[subj].sort(function(a,b){
+      var na = (a.label.match(/\d+/)||[0])[0]*1;
+      var nb = (b.label.match(/\d+/)||[0])[0]*1;
+      return na - nb;
+    });
+  });
+
+  return groups;
+}
+
+function populatePapers(){
+  if (!state.manifest || !Array.isArray(state.manifest.papers) || !state.manifest.papers.length){
+    failDropdowns("No papers in manifest");
+    return;
   }
+
+  var sel = $("#paperSel");
+  var groups = groupPapersBySubject(state.manifest.papers);
+
+  // Build <optgroup>…<option>… HTML
+  var html = Object.keys(groups).sort().map(function(subject){
+    var options = groups[subject].map(function(it){
+      return '<option value="'+it.id+'">'+it.label+'</option>';
+    }).join("");
+    return '<optgroup label="'+subject+'">'+options+'</optgroup>';
+  }).join("");
+
+  sel.innerHTML = html;
+
+  // Select first available option
+  var first = sel.querySelector("option");
+  state.paper = first ? first.value : null;
+
+  sel.onchange = function(){
+    state.paper = sel.value;
+    populateTopics();
+  };
+
+  populateTopics();
+}
+
   function populateTopics() {
     var paper = (state.manifest.papers || []).find(function (p) { return p.id === state.paper; }) || {};
     var topics = paper.topics || [];
